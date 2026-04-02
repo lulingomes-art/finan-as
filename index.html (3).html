@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Finanças — Lucas</title>
+<meta name="theme-color" content="#ffffff">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg-primary:#fff;
+    --bg-secondary:#f5f5f3;
+    --bg-tertiary:#eeede8;
+    --text-primary:#1a1a18;
+    --text-secondary:#6b6b67;
+    --border-light:rgba(0,0,0,.1);
+    --border-mid:rgba(0,0,0,.18);
+    --radius-md:8px;
+    --radius-lg:12px;
+    --green:#1D9E75;
+    --red:#D85A30;
+    --blue:#378ADD;
+    --amber:#BA7517;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      --bg-primary:#1c1c1a;
+      --bg-secondary:#252523;
+      --bg-tertiary:#2e2e2b;
+      --text-primary:#f0efe8;
+      --text-secondary:#9a9994;
+      --border-light:rgba(255,255,255,.1);
+      --border-mid:rgba(255,255,255,.18);
+    }
+  }
+  body{font-family:var(--font);background:var(--bg-tertiary);color:var(--text-primary);min-height:100vh}
+  .app{max-width:480px;margin:0 auto;padding:0 0 80px}
+
+  .header{padding:20px 16px 12px;background:var(--bg-primary);border-bottom:0.5px solid var(--border-light);position:sticky;top:0;z-index:100}
+  .header h1{font-size:18px;font-weight:600;color:var(--text-primary)}
+  .header p{font-size:12px;color:var(--text-secondary);margin-top:2px}
+  .month-nav{display:flex;align-items:center;gap:8px;margin-top:10px}
+  .month-nav button{background:none;border:0.5px solid var(--border-light);border-radius:var(--radius-md);padding:4px 10px;font-size:13px;color:var(--text-primary);cursor:pointer}
+  .month-nav button:hover{background:var(--bg-secondary)}
+  .month-label{font-size:14px;font-weight:500;flex:1;text-align:center}
+
+  .nav-tabs{display:flex;background:var(--bg-primary);border-bottom:0.5px solid var(--border-light);overflow-x:auto;scrollbar-width:none;position:sticky;top:80px;z-index:99}
+  .nav-tabs::-webkit-scrollbar{display:none}
+  .nav-tab{flex:none;padding:12px 16px;font-size:13px;color:var(--text-secondary);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+  .nav-tab.active{color:var(--text-primary);border-bottom-color:var(--text-primary);font-weight:500}
+
+  .section{display:none;padding:12px 16px}
+  .section.active{display:block}
+
+  /* ---- CONFIG ---- */
+  .entrada-config{background:var(--bg-secondary);border-radius:var(--radius-md);padding:14px;margin-bottom:16px}
+  .entrada-config p{font-size:12px;color:var(--text-secondary);margin-bottom:10px;font-weight:500}
+  .entrada-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .entrada-row:last-child{margin-bottom:0}
+  .entrada-row label{font-size:13px;color:var(--text-primary);white-space:nowrap;min-width:72px}
+  .entrada-row input{flex:1;padding:7px 10px;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);font-size:13px;background:var(--bg-primary);color:var(--text-primary)}
+  .entrada-row button{padding:7px 12px;background:var(--text-primary);color:var(--bg-primary);border:none;border-radius:var(--radius-md);font-size:13px;cursor:pointer;font-weight:500}
+
+  /* ---- PAY BLOCK ---- */
+  .pay-block{background:var(--bg-primary);border:0.5px solid var(--border-light);border-radius:var(--radius-lg);margin-bottom:14px;overflow:hidden}
+  .pay-header{padding:14px 16px;display:flex;align-items:center;gap:10px}
+  .pay-badge{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+  .pay-badge.dia05{background:#E1F5EE;color:#0F6E56}
+  .pay-badge.dia20{background:#E6F1FB;color:#185FA5}
+  .pay-info{flex:1}
+  .pay-title{font-size:14px;font-weight:500}
+  .pay-sub{font-size:12px;color:var(--text-secondary);margin-top:2px}
+  .pay-entrada{font-size:14px;font-weight:600;color:var(--green)}
+  .pay-body{padding:0 16px 12px}
+  .bill-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:0.5px solid var(--border-light);gap:8px}
+  .bill-left{display:flex;align-items:center;gap:8px;flex:1}
+  .bill-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .bill-name{font-size:13px;color:var(--text-primary)}
+  .bill-cat{font-size:10px;padding:2px 6px;border-radius:999px;background:var(--bg-secondary);color:var(--text-secondary);margin-left:4px}
+  .bill-amount{font-size:13px;color:var(--red);font-weight:500}
+  .add-bill-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:none;border:0.5px dashed var(--border-mid);border-radius:var(--radius-md);padding:8px 12px;font-size:13px;color:var(--text-secondary);cursor:pointer;width:100%;margin-top:8px}
+  .add-bill-btn:hover{background:var(--bg-secondary)}
+  .sobra-row{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-top:0.5px solid var(--border-mid);background:var(--bg-secondary)}
+  .sobra-label{font-size:13px;color:var(--text-secondary)}
+  .sobra-val{font-size:16px;font-weight:600}
+  .sobra-val.pos{color:var(--green)}
+  .sobra-val.neg{color:var(--red)}
+
+  /* ---- METRICS ---- */
+  .metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+  .metric-card{background:var(--bg-secondary);border-radius:var(--radius-md);padding:12px}
+  .metric-card.full{grid-column:1/-1}
+  .metric-label{font-size:11px;color:var(--text-secondary);margin-bottom:4px}
+  .metric-val{font-size:20px;font-weight:600}
+  .metric-val.green{color:var(--green)}
+  .metric-val.red{color:var(--red)}
+  .metric-val.amber{color:var(--amber)}
+
+  /* ---- CARD ---- */
+  .card{background:var(--bg-primary);border:0.5px solid var(--border-light);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px}
+  .card-title{font-size:13px;font-weight:500;margin-bottom:10px}
+  .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .bar-cat{font-size:12px;color:var(--text-secondary);width:80px;flex-shrink:0;text-align:right}
+  .bar-track{flex:1;height:8px;background:var(--bg-secondary);border-radius:4px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:4px}
+  .bar-val{font-size:12px;color:var(--text-secondary);width:70px;text-align:right;flex-shrink:0}
+
+  /* ---- ENTRIES ---- */
+  .entry-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border-light);gap:8px}
+  .entry-row:last-child{border-bottom:none}
+  .entry-desc{font-size:13px;flex:1}
+  .entry-meta{font-size:11px;color:var(--text-secondary);margin-top:2px}
+  .entry-val{font-size:13px;font-weight:500}
+  .entry-val.out{color:var(--red)}
+  .entry-val.in{color:var(--green)}
+  .tag{display:inline-block;font-size:10px;padding:2px 6px;border-radius:999px;margin-left:4px;background:var(--bg-secondary);color:var(--text-secondary)}
+
+  /* ---- METAS ---- */
+  .meta-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .progress-info{flex:1}
+  .progress-name{font-size:13px}
+  .progress-sub{font-size:11px;color:var(--text-secondary);margin-top:2px}
+  .progress-bar{height:6px;background:var(--bg-secondary);border-radius:3px;margin-top:6px;overflow:hidden}
+  .progress-bar-fill{height:100%;border-radius:3px;background:var(--blue)}
+  .progress-pct{font-size:13px;font-weight:500;width:36px;text-align:right;flex-shrink:0}
+
+  /* ---- FAB ---- */
+  .fab{position:fixed;bottom:24px;right:16px;width:52px;height:52px;border-radius:50%;background:var(--text-primary);color:var(--bg-primary);border:none;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:150;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+
+  /* ---- MODAL ---- */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--bg-primary);border-radius:16px 16px 0 0;padding:20px 16px 36px;width:100%;max-width:480px}
+  .modal h3{font-size:15px;font-weight:500;margin-bottom:16px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+  .field input,.field select{width:100%;padding:9px 10px;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);font-size:14px;background:var(--bg-primary);color:var(--text-primary)}
+  .modal-actions{display:flex;gap:8px;margin-top:16px}
+  .btn-cancel{flex:1;padding:11px;background:none;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);font-size:14px;color:var(--text-secondary);cursor:pointer}
+  .btn-save{flex:1;padding:11px;background:var(--text-primary);border:none;border-radius:var(--radius-md);font-size:14px;color:var(--bg-primary);cursor:pointer;font-weight:500}
+  .empty{font-size:13px;color:var(--text-secondary);padding:8px 0}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <h1>Finanças</h1>
+    <p>Controle mensal pessoal</p>
+    <div class="month-nav">
+      <button onclick="changeMonth(-1)">‹</button>
+      <span class="month-label" id="monthLabel"></span>
+      <button onclick="changeMonth(1)">›</button>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showTab('pagamentos',this)">Pagamentos</div>
+    <div class="nav-tab" onclick="showTab('dashboard',this)">Dashboard</div>
+    <div class="nav-tab" onclick="showTab('lancamentos',this)">Lançamentos</div>
+    <div class="nav-tab" onclick="showTab('metas',this)">Metas</div>
+  </div>
+
+  <!-- PAGAMENTOS -->
+  <div id="tab-pagamentos" class="section active">
+    <div class="entrada-config">
+      <p>Configure seus pagamentos mensais</p>
+      <div class="entrada-row">
+        <label>Dia 05 —</label>
+        <input id="cfg-05" type="number" placeholder="Valor recebido">
+        <button onclick="saveConfig()">OK</button>
+      </div>
+      <div class="entrada-row">
+        <label>Dia 20 —</label>
+        <input id="cfg-20" type="number" placeholder="Valor recebido">
+        <button onclick="saveConfig()">OK</button>
+      </div>
+    </div>
+    <div id="pay-blocks"></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="tab-dashboard" class="section">
+    <div class="metrics">
+      <div class="metric-card"><div class="metric-label">Entradas (mês)</div><div class="metric-val green" id="m-entradas">R$ 0</div></div>
+      <div class="metric-card"><div class="metric-label">Contas fixas</div><div class="metric-val red" id="m-saidas">R$ 0</div></div>
+      <div class="metric-card"><div class="metric-label">Sobra total</div><div class="metric-val" id="m-saldo">R$ 0</div></div>
+      <div class="metric-card"><div class="metric-label">Extras lançados</div><div class="metric-val amber" id="m-extras">R$ 0</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Gastos por categoria</div>
+      <div id="cat-bars"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Últimos lançamentos</div>
+      <div id="recent-list"></div>
+    </div>
+  </div>
+
+  <!-- LANÇAMENTOS -->
+  <div id="tab-lancamentos" class="section">
+    <div class="card">
+      <div class="card-title">Todos os lançamentos</div>
+      <div id="all-entries"></div>
+    </div>
+  </div>
+
+  <!-- METAS -->
+  <div id="tab-metas" class="section">
+    <div class="metrics">
+      <div class="metric-card full"><div class="metric-label">Total guardado</div><div class="metric-val green" id="m-guardado">R$ 0</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Minhas metas</div>
+      <div id="metas-list"></div>
+      <button class="add-bill-btn" onclick="openModal('modal-meta')">+ Nova meta</button>
+    </div>
+  </div>
+
+</div><!-- .app -->
+
+<button class="fab" onclick="openModal('modal-entry')">+</button>
+
+<!-- MODAL: lançamento avulso -->
+<div class="modal-bg" id="modal-entry">
+  <div class="modal">
+    <h3>Novo lançamento</h3>
+    <div class="field"><label>Tipo</label><select id="e-tipo"><option value="saida">Saída</option><option value="entrada">Entrada</option></select></div>
+    <div class="field"><label>Descrição</label><input id="e-desc" placeholder="Ex: Mercado, Salário..."></div>
+    <div class="field"><label>Valor (R$)</label><input id="e-val" type="number" placeholder="0,00"></div>
+    <div class="field"><label>Categoria</label>
+      <select id="e-cat">
+        <option>Contas</option><option>Alimentação</option><option>Lazer</option>
+        <option>Saúde</option><option>Faculdade</option><option>Academia</option><option>Outros</option>
+      </select>
+    </div>
+    <div class="field"><label>Data</label><input id="e-data" type="date"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn-save" onclick="saveEntry()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: conta fixa por dia de pagamento -->
+<div class="modal-bg" id="modal-bill">
+  <div class="modal">
+    <h3 id="bill-modal-title">Adicionar conta</h3>
+    <div class="field"><label>Descrição</label><input id="b-desc" placeholder="Ex: Pensão, Cabeleireiro..."></div>
+    <div class="field"><label>Valor (R$)</label><input id="b-val" type="number" placeholder="0,00"></div>
+    <div class="field"><label>Categoria</label>
+      <select id="b-cat">
+        <option>Contas</option><option>Alimentação</option><option>Lazer</option>
+        <option>Saúde</option><option>Faculdade</option><option>Outros</option>
+      </select>
+    </div>
+    <input type="hidden" id="b-paydate">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn-save" onclick="saveBill()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: meta -->
+<div class="modal-bg" id="modal-meta">
+  <div class="modal">
+    <h3>Nova meta</h3>
+    <div class="field"><label>Nome</label><input id="mt-nome" placeholder="Ex: Viagem, Notebook..."></div>
+    <div class="field"><label>Valor total (R$)</label><input id="mt-total" type="number" placeholder="0,00"></div>
+    <div class="field"><label>Já guardado (R$)</label><input id="mt-guardado" type="number" placeholder="0,00"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn-save" onclick="saveMeta()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const COLORS=['#1D9E75','#BA7517','#D85A30','#378ADD','#534AB7','#3B6D11','#888780'];
+const STORAGE_KEY='financas-lucas-v1';
+
+let now=new Date();
+let curYear=now.getFullYear();
+let curMonth=now.getMonth();
+
+// --- estado padrão ---
+let state={
+  config:{entrada05:0,entrada20:0},
+  bills:{5:[],20:[]},
+  entries:[],
+  metas:[],
+  nextId:1
+};
+
+// --- persistência localStorage ---
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(raw)state=JSON.parse(raw);
+    // garante que as chaves numéricas bills existem
+    if(!state.bills[5])state.bills[5]=[];
+    if(!state.bills[20])state.bills[20]=[];
+  }catch(e){}
+}
+function saveState(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}
+}
+loadState();
+
+// preenche config inputs
+document.getElementById('cfg-05').value=state.config.entrada05||'';
+document.getElementById('cfg-20').value=state.config.entrada20||'';
+
+function fmt(v){return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+function monthEntries(){
+  return state.entries.filter(e=>{
+    const d=new Date(e.data+'T12:00:00');
+    return d.getFullYear()===curYear&&d.getMonth()===curMonth;
+  });
+}
+
+function render(){
+  document.getElementById('monthLabel').textContent=MONTHS[curMonth]+' '+curYear;
+  renderPayments();
+  renderDashboard();
+  renderLancamentos();
+  renderMetas();
+}
+
+function renderPayments(){
+  const container=document.getElementById('pay-blocks');
+  container.innerHTML='';
+  [5,20].forEach(dia=>{
+    const entrada=dia===5?state.config.entrada05:state.config.entrada20;
+    const bills=state.bills[dia]||[];
+    const totalBills=bills.reduce((s,b)=>s+b.val,0);
+    const sobra=entrada-totalBills;
+    const dotColor=dia===5?'#1D9E75':'#378ADD';
+
+    const billsHTML=bills.map(b=>`
+      <div class="bill-row">
+        <div class="bill-left">
+          <div class="bill-dot" style="background:${dotColor};opacity:.6"></div>
+          <span class="bill-name">${b.desc}<span class="bill-cat">${b.cat}</span></span>
+        </div>
+        <span class="bill-amount">− ${fmt(b.val)}</span>
+      </div>`).join('');
+
+    const block=document.createElement('div');
+    block.className='pay-block';
+    block.innerHTML=`
+      <div class="pay-header">
+        <div class="pay-badge ${dia===5?'dia05':'dia20'}">${dia===5?'05':'20'}</div>
+        <div class="pay-info">
+          <div class="pay-title">Pagamento dia ${dia}</div>
+          <div class="pay-sub">${bills.length} conta${bills.length!==1?'s':''} · saída ${fmt(totalBills)}</div>
+        </div>
+        <div class="pay-entrada">${entrada>0?fmt(entrada):'—'}</div>
+      </div>
+      <div class="pay-body">
+        ${billsHTML||'<p class="empty" style="padding-top:4px">Nenhuma conta cadastrada</p>'}
+        <button class="add-bill-btn" onclick="openAddBill(${dia})">+ Adicionar conta</button>
+      </div>
+      <div class="sobra-row">
+        <span class="sobra-label">Sobra após contas</span>
+        <span class="sobra-val ${entrada>0?(sobra>=0?'pos':'neg'):''}">
+          ${entrada>0?fmt(sobra):'Configure o valor recebido'}
+        </span>
+      </div>`;
+    container.appendChild(block);
+  });
+}
+
+function renderDashboard(){
+  const e05=state.config.entrada05||0;
+  const e20=state.config.entrada20||0;
+  const totalEntradas=e05+e20;
+  const totalBills=Object.values(state.bills).flat().reduce((s,b)=>s+b.val,0);
+  const extras=monthEntries().filter(e=>e.tipo==='saida').reduce((s,e)=>s+e.val,0);
+  const sobra=totalEntradas-totalBills-extras;
+  const sEl=document.getElementById('m-saldo');
+  sEl.textContent=fmt(sobra);
+  sEl.className='metric-val '+(sobra>=0?'green':'red');
+  document.getElementById('m-entradas').textContent=fmt(totalEntradas);
+  document.getElementById('m-saidas').textContent=fmt(totalBills);
+  document.getElementById('m-extras').textContent=fmt(extras);
+
+  const catMap={};
+  Object.values(state.bills).flat().forEach(b=>{catMap[b.cat]=(catMap[b.cat]||0)+b.val});
+  monthEntries().filter(e=>e.tipo==='saida').forEach(e=>{catMap[e.cat]=(catMap[e.cat]||0)+e.val});
+  const maxVal=Math.max(...Object.values(catMap),1);
+  document.getElementById('cat-bars').innerHTML=
+    Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([cat,val],i)=>`
+      <div class="bar-row">
+        <span class="bar-cat">${cat}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${(val/maxVal*100).toFixed(0)}%;background:${COLORS[i%COLORS.length]}"></div></div>
+        <span class="bar-val">${fmt(val)}</span>
+      </div>`).join('')||'<p class="empty">Sem dados</p>';
+
+  const sorted=[...monthEntries()].sort((a,b)=>new Date(b.data)-new Date(a.data)).slice(0,5);
+  document.getElementById('recent-list').innerHTML=sorted.map(e=>`
+    <div class="entry-row">
+      <div><div class="entry-desc">${e.desc}</div><div class="entry-meta">${new Date(e.data+'T12:00:00').toLocaleDateString('pt-BR')}<span class="tag">${e.cat}</span></div></div>
+      <div class="entry-val ${e.tipo==='saida'?'out':'in'}">${e.tipo==='saida'?'−':'+'} ${fmt(e.val)}</div>
+    </div>`).join('')||'<p class="empty">Sem lançamentos este mês</p>';
+}
+
+function renderLancamentos(){
+  const sorted=[...monthEntries()].sort((a,b)=>new Date(b.data)-new Date(a.data));
+  document.getElementById('all-entries').innerHTML=sorted.map(e=>`
+    <div class="entry-row">
+      <div><div class="entry-desc">${e.desc}</div><div class="entry-meta">${new Date(e.data+'T12:00:00').toLocaleDateString('pt-BR')}<span class="tag">${e.cat}</span></div></div>
+      <div class="entry-val ${e.tipo==='saida'?'out':'in'}">${e.tipo==='saida'?'−':'+'} ${fmt(e.val)}</div>
+    </div>`).join('')||'<p class="empty">Sem lançamentos este mês</p>';
+}
+
+function renderMetas(){
+  const total=state.metas.reduce((s,m)=>s+m.guardado,0);
+  document.getElementById('m-guardado').textContent=fmt(total);
+  document.getElementById('metas-list').innerHTML=state.metas.map(m=>{
+    const pct=Math.min(100,Math.round(m.guardado/m.total*100));
+    return `<div class="meta-row">
+      <div class="progress-info">
+        <div class="progress-name">${m.nome}</div>
+        <div class="progress-sub">${fmt(m.guardado)} de ${fmt(m.total)}</div>
+        <div class="progress-bar"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="progress-pct">${pct}%</div>
+    </div>`;
+  }).join('')||'<p class="empty">Nenhuma meta cadastrada</p>';
+}
+
+function showTab(id,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  el.classList.add('active');
+}
+function changeMonth(d){
+  curMonth+=d;
+  if(curMonth<0){curMonth=11;curYear--}
+  if(curMonth>11){curMonth=0;curYear++}
+  render();
+}
+function openModal(id){
+  if(id==='modal-entry')document.getElementById('e-data').value=new Date().toISOString().slice(0,10);
+  document.getElementById(id).classList.add('open');
+}
+function openAddBill(dia){
+  document.getElementById('bill-modal-title').textContent='Conta — dia '+dia;
+  document.getElementById('b-paydate').value=dia;
+  document.getElementById('b-desc').value='';
+  document.getElementById('b-val').value='';
+  document.getElementById('modal-bill').classList.add('open');
+}
+function closeModals(){
+  document.querySelectorAll('.modal-bg').forEach(m=>m.classList.remove('open'));
+}
+
+function saveConfig(){
+  const v05=parseFloat(document.getElementById('cfg-05').value)||0;
+  const v20=parseFloat(document.getElementById('cfg-20').value)||0;
+  state.config.entrada05=v05;
+  state.config.entrada20=v20;
+  saveState();render();
+}
+function saveEntry(){
+  const desc=document.getElementById('e-desc').value.trim();
+  const val=parseFloat(document.getElementById('e-val').value);
+  const data=document.getElementById('e-data').value;
+  if(!desc||!val||!data)return alert('Preencha todos os campos');
+  state.entries.push({
+    id:state.nextId++,
+    tipo:document.getElementById('e-tipo').value,
+    desc,val,
+    cat:document.getElementById('e-cat').value,
+    data
+  });
+  saveState();closeModals();render();
+}
+function saveBill(){
+  const dia=parseInt(document.getElementById('b-paydate').value);
+  const desc=document.getElementById('b-desc').value.trim();
+  const val=parseFloat(document.getElementById('b-val').value);
+  const cat=document.getElementById('b-cat').value;
+  if(!desc||!val)return alert('Preencha descrição e valor');
+  if(!state.bills[dia])state.bills[dia]=[];
+  state.bills[dia].push({id:state.nextId++,desc,val,cat});
+  saveState();closeModals();render();
+}
+function saveMeta(){
+  const nome=document.getElementById('mt-nome').value.trim();
+  const total=parseFloat(document.getElementById('mt-total').value);
+  const guardado=parseFloat(document.getElementById('mt-guardado').value)||0;
+  if(!nome||!total)return alert('Preencha nome e valor');
+  state.metas.push({id:state.nextId++,nome,total,guardado});
+  saveState();closeModals();render();
+}
+
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModals()}));
+render();
+</script>
+</body>
+</html>
